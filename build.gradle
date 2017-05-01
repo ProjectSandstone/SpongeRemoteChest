@@ -1,0 +1,118 @@
+plugins {
+    id 'com.github.hierynomus.license' version '0.13.1'
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
+}
+
+apply from: 'gradle/versions.gradle'
+
+group 'com.github.projectsandstone'
+version '2.0-SNAPSHOT'
+
+// IDE
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+// Programming Language
+apply plugin: 'java'
+
+// License
+apply plugin: 'license'
+
+// Shade
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+    maven {
+        name = 'sponge'
+        url = 'http://repo.spongepowered.org/maven'
+    }
+}
+
+//noinspection GroovyAssignabilityCheck
+dependencies {
+
+    // Sponge API
+    compile "org.spongepowered:spongeapi:$spongeapi_version"
+
+    // JwIUtils
+    compile "com.github.JonathanxD:JwIUtils:$jwiutils_version"
+
+    // Annotations
+    compile "org.jetbrains:annotations:$annotations_version"
+
+    // JUnit
+    testCompile group: 'junit', name:'junit', version: '4.12'
+}
+
+//noinspection GroovyAssignabilityCheck
+test {
+    useJUnit()
+}
+
+// Tasks
+//noinspection GroovyAssignabilityCheck
+jar {
+    from "$rootProject.rootDir/LICENSE"
+
+    manifest {
+        attributes 'Implementation-Title': baseName,
+                'Implementation-Version': version
+    }
+}
+
+shadowJar {
+    classifier = 'shaded'
+    dependencies {
+    }
+
+    relocate 'com.github.jonathanxd.jwiutils', 'com.github.projectsandstone.spongeremotechests.jwiutils' // Relocate JwIUtils dependency.
+}
+
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: classes) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives shadowJar
+}
+
+license {
+    header rootProject.file("LICENSE_HEADER")
+    ext.name = project.name
+    ext.description = project.description
+    ext.organization = project.organization
+    ext.url = project.url
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+
+    exclude "**/*.info"
+    exclude "**/*.md"
+    exclude "res/**"
+    exclude "src/main/resources/**"
+    exclude "src/test/resources/**"
+
+    header rootProject.file('LICENSE_HEADER')
+
+    sourceSets = project.sourceSets
+
+    ignoreFailures false
+    strictCheck true
+
+    mapping {
+        java = 'JAVADOC_STYLE'
+        kt = 'JAVADOC_STYLE'
+    }
+}
+
